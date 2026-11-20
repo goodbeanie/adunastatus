@@ -6,7 +6,7 @@ window.ADUNA = {
   members: 'https://aduna.dpdns.org/api/public/members',
   source: 'https://github.com/goodbeanie/aduna',
   releases: 'https://github.com/goodbeanie/aduna/releases',
-  retrySeconds: 5,
+  retrySeconds: 10,
   // where the connecting page sends people once the server answers: connect.html?go=signup
   targets: { app: '/app', signup: '/app#signup', download: '/download' }
 };
