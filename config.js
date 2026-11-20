@@ -4,8 +4,8 @@ window.ADUNA = {
   app: 'https://aduna.dpdns.org/app',
   health: 'https://aduna.dpdns.org/healthz',
   members: 'https://aduna.dpdns.org/api/public/members',
-  // the posted notice; the main domain sends this path to the Aduna server, so the pages call the Cloudflare address directly
-  notice: 'https://adunafront.nathankennethvc2.workers.dev/status-notice',
+  // the posted notice: kept by the Aduna server and posted from aduna.dpdns.org/admin > Status
+  notice: 'https://aduna.dpdns.org/api/public/status-notice',
   source: 'https://github.com/goodbeanie/aduna',
   releases: 'https://github.com/goodbeanie/aduna/releases',
   retrySeconds: 10,
