@@ -1,5 +1,5 @@
 // The bar across the top of the homepage.
-// 1. A notice posted from /admin.html (stored at /api/status, with status.json as the fallback) shows as a bar:
+// 1. A notice posted from /admin.html (stored at /status-notice, with status.json as the fallback) shows as a bar:
 //    red when the server is down, yellow for a warning, and nothing when there is no notice.
 // 2. If nobody has posted a notice but the server stops answering /healthz twice in a row, the default
 //    "Server restart" bar appears by itself and goes away when the server answers again.

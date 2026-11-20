@@ -1,7 +1,7 @@
 // The live status notice, stored in Cloudflare KV so it can be changed from /admin.html without a redeploy.
-//   GET    /api/status   public: what the homepage and connect page show
-//   POST   /api/status   admin only: { down, message, backAt, template }
-//   DELETE /api/status   admin only: clear the notice
+//   GET    /status-notice   public: what the homepage and connect page show
+//   POST   /status-notice   admin only: { down, message, backAt, template }
+//   DELETE /status-notice   admin only: clear the notice
 // Needs, in Cloudflare Pages > Settings > Bindings / Variables:
 //   STATUS       a KV namespace binding
 //   ADMIN_TOKEN  a long random secret (the password for /admin.html)

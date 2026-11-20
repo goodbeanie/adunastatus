@@ -1,5 +1,5 @@
 // Shared by the homepage bar, the connect page and the admin preview.
-// Reads the live notice from /api/status (set in /admin.html). If that is not reachable, falls back to status.json.
+// Reads the live notice from /status-notice (set in /admin.html). If that is not reachable, falls back to status.json.
 // A notice looks like { down, message, backAt (ISO time or null) }.
 (function () {
   function when(iso) {
@@ -32,7 +32,7 @@
 
   // Resolves to { down, text } or null. Rejects only if neither source could be read.
   function load() {
-    return getJson('/api/status')
+    return getJson('/status-notice')
       .catch(function () { return getJson('status.json'); })
       .then(describe);
   }

@@ -148,7 +148,7 @@
 
   function call(method, body) {
     try { sessionStorage.setItem('adunaAdmin', pw.value); } catch (e) {}
-    return fetch('/api/status', {
+    return fetch('/status-notice', {
       method: method,
       headers: { 'Authorization': 'Bearer ' + pw.value, 'Content-Type': 'application/json' },
       body: body ? JSON.stringify(body) : undefined
