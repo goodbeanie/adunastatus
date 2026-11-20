@@ -4,30 +4,44 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Connecting to Aduna</title>
+<meta name="theme-color" content="#fffbef">
+<link rel="icon" type="image/png" href="home-assets/favicon.png" media="(prefers-color-scheme: light)" />
+<link rel="icon" type="image/png" href="home-assets/favicon-dark.png" media="(prefers-color-scheme: dark)" />
+<link rel="apple-touch-icon" href="home-assets/apple-touch-icon.png">
+<link rel="stylesheet" href="home-assets/landing.css">
 <link rel="stylesheet" href="site.css">
 </head>
 <body>
 <div id="bar" role="status" aria-live="polite"></div>
 
 <div class="wrap">
-  <main>
-    <p class="brand">Aduna</p>
+  <nav>
+    <a class="brand" href="/" aria-label="aduna."><span class="logo-wm" role="img" aria-label="aduna."></span></a>
+  </nav>
+
+  <main class="conn">
     <div class="spin" role="progressbar" aria-label="Connecting to the server"></div>
     <h1 id="title">Connecting to Aduna</h1>
-    <p id="what" aria-live="polite">Checking the server…</p>
-    <p id="meta"></p>
-    <div class="row">
+    <p class="what" id="what" aria-live="polite">Checking the server…</p>
+    <p class="meta" id="meta"></p>
+    <div class="cta">
       <button class="btn ghost" id="now" type="button">Try now</button>
-      <a class="btn ghost" href="index.html">Back</a>
+      <a class="btn ghost" href="/">Back</a>
     </div>
   </main>
 </div>
 
 <script src="config.js"></script>
+<script src="home-assets/theme.js"></script>
 <script>
 (function () {
   var RETRY = (ADUNA.retrySeconds || 5) * 1000;
   var TIMEOUT = 4000; // give up on a single attempt before the next one is due
+
+  // connect.html?go=app | signup | download. Only these three are allowed, so the page cannot be used to send people elsewhere.
+  var go = '';
+  try { go = new URLSearchParams(location.search).get('go') || ''; } catch (e) {}
+  var DEST = ADUNA.origin + (ADUNA.targets[go] || ADUNA.targets.app);
 
   var bar = document.getElementById('bar');
   var title = document.getElementById('title');
@@ -96,7 +110,7 @@
     now.disabled = true;
     clearTimeout(nextTimer);
     var began = Date.now();
-    what.textContent = attempts === 0 ? 'Checking the server…' : what.textContent;
+    if (attempts === 0) what.textContent = 'Checking the server…';
     tick();
 
     Promise.all([ping(), loadNotice()]).then(function (res) {
@@ -111,7 +125,7 @@
         title.textContent = 'Connected';
         what.textContent = 'Opening Aduna…';
         meta.textContent = '';
-        location.replace(ADUNA.app);
+        location.replace(DEST);
         return;
       }
       explain();

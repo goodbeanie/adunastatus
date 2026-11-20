@@ -3,82 +3,108 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aduna</title>
-<meta name="description" content="Aduna is a chat app with servers, channels, DMs, voice and video calls, and bots.">
+<title>Aduna: to gather.</title>
+<meta name="description" content="Aduna is a chat app for your people. Servers, live chat, end-to-end encrypted DMs, voice and video calls, and themes.">
+<meta name="theme-color" content="#fffbef">
+<meta name="google-adsense-account" content="ca-pub-8339145384563901">
+<meta property="og:title" content="Aduna: to gather.">
+<meta property="og:description" content="Servers, live chat, encrypted DMs, calls and themes. Come gather.">
+<meta property="og:image" content="https://aduna.dpdns.org/home-assets/aduna-icon.png">
+<link rel="icon" type="image/png" href="home-assets/favicon.png" media="(prefers-color-scheme: light)" />
+<link rel="icon" type="image/png" href="home-assets/favicon-dark.png" media="(prefers-color-scheme: dark)" />
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="home-assets/apple-touch-icon.png">
+<link rel="stylesheet" href="home-assets/landing.css">
 <link rel="stylesheet" href="site.css">
+<script src="/pwa.js" defer></script>
 </head>
 <body>
 <div id="bar" role="status" aria-live="polite"></div>
 
 <div class="wrap">
-  <main>
-    <p class="brand">Aduna</p>
-    <h1>Chat with your people.</h1>
-    <p>Servers with channels, direct messages, voice and video calls, profiles and bots. DMs and group chats are end-to-end encrypted.</p>
-    <a class="btn" id="open" href="connect.html">Open Aduna</a>
-    <div class="links">
-      <a id="releases" href="#">Windows &amp; Android</a>·<a id="source" href="#">Source code</a>
+  <nav>
+    <a class="brand" href="/" aria-label="aduna."><span class="logo-wm" role="img" aria-label="aduna."></span></a>
+    <div class="links"><a class="t" href="#features">Features</a><a class="t" href="#privacy">Privacy</a>
+      <a class="btn sm dl" href="connect.html?go=download">Download Aduna</a></div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-copy">
+      <p class="kicker">Aduna, verb: to gather.</p>
+      <h1>Your people.<br>Your space.</h1>
+      <p class="lead">A chat app for communities and close friends: servers and channels, voice and video, direct messages only you can read, and themes you can make your own.</p>
+      <div class="cta">
+        <a class="btn big go primary" href="connect.html?go=signup">Join Aduna</a>
+        <a class="btn big ghost login" href="connect.html?go=app">Log in</a>
+      </div>
+      <p class="note">Start with your name, picture and look. Email and password come after. You can join the official Aduna server when you sign up.</p>
+
+      <div class="try" role="group" aria-label="Try a theme on this page">
+        <span class="try-label">Try a look. Your pick carries into sign-up.</span>
+        <div class="dots">
+          <button type="button" class="is20 sw" data-theme="zen" aria-pressed="false" aria-label="Zen" title="Zen">Zen</button>
+          <button type="button" class="is21 sw" data-theme="zen-light" aria-pressed="false" aria-label="Zen Light" title="Zen Light">Zen Light</button>
+          <button type="button" class="is8 sw" data-theme="parchment" aria-pressed="false" aria-label="Parchment" title="Parchment">Parchment</button>
+          <button type="button" class="is9 sw" data-theme="ocean" aria-pressed="false" aria-label="Ocean" title="Ocean">Ocean</button>
+          <button type="button" class="is10 sw" data-theme="forest" aria-pressed="false" aria-label="Forest" title="Forest">Forest</button>
+          <button type="button" class="is11 sw" data-theme="rose" aria-pressed="false" aria-label="Rose" title="Rose">Rose</button>
+          <button type="button" class="is12 sw" data-theme="lavender" aria-pressed="false" aria-label="Lavender" title="Lavender">Lavender</button>
+          <button type="button" class="is13 sw" data-theme="sunset" aria-pressed="false" aria-label="Sunset" title="Sunset">Sunset</button>
+          <button type="button" class="is14 sw" data-theme="charcoal" aria-pressed="false" aria-label="Charcoal" title="Charcoal">Charcoal</button>
+          <button type="button" class="is15 sw" data-theme="midnight" aria-pressed="false" aria-label="Midnight" title="Midnight">Midnight</button>
+          <button type="button" class="is16 sw" data-theme="evergreen" aria-pressed="false" aria-label="Evergreen" title="Evergreen">Evergreen</button>
+          <button type="button" class="is17 sw" data-theme="plum" aria-pressed="false" aria-label="Plum" title="Plum">Plum</button>
+          <button type="button" class="is18 sw" data-theme="ember" aria-pressed="false" aria-label="Ember" title="Ember">Ember</button>
+        </div>
+      </div>
     </div>
-  </main>
+
+    <aside class="goal" id="goal" aria-labelledby="goal-title">
+      <p class="goal-kicker" id="goal-title">Aduna members</p>
+      <p class="goal-count"><b id="goal-n">&ndash;</b><span class="of">of <span id="goal-target">1,000</span></span></p>
+      <div class="goal-bar" id="goal-track" role="progressbar" aria-labelledby="goal-title" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="0"><div class="goal-fill" id="goal-fill"></div></div>
+      <p class="goal-note" id="goal-note">Our goal is 1,000 members. Come be one of them.</p>
+    </aside>
+  </header>
+</div>
+
+<section id="features"><div class="wrap two">
+  <div>
+    <h2>What's inside.</h2>
+    <p class="sub">Servers with channels, a chat that keeps up, and calls for when typing is too slow.</p>
+  </div>
+  <dl class="feat">
+    <div><dt>Servers and channels</dt><dd>Categories, text and voice channels, rules and announcements. Public servers show up in the explorer, and a custom invite code brings people in.</dd></div>
+    <div><dt>Live chat</dt><dd>Replies, reactions, typing indicators, unread badges, edits and deletes, all in real time.</dd></div>
+    <div><dt>Mentions</dt><dd>Autocomplete, highlights and desktop alerts, so a ping doesn't get lost.</dd></div>
+    <div><dt>Sharing</dt><dd>Drag in or paste images, video, audio and files. There is GIF search and custom emoji too.</dd></div>
+    <div><dt>Voice and video</dt><dd>One-to-one calls with camera and screen share, and voice channels for small groups.</dd></div>
+    <div><dt>Your look</dt><dd>Your own avatar, banner, name colour and status. A server can have its own theme as well, and you can build your own theme from two colours.</dd></div>
+  </dl>
+</div></section>
+
+<section id="privacy" class="dark"><div class="wrap split">
+  <div>
+    <h2>DMs only you can read.</h2>
+    <p class="sub">Direct messages are encrypted in your browser before they leave it. The server only ever holds ciphertext it can't open.</p>
+    <p class="spec">ECDH P-256 key exchange, AES-256-GCM, safety numbers to verify a chat, and encryption at rest.</p>
+  </div>
+  <div>
+    <div class="plain"><div class="lab">What you send</div>yep, 14 Lantern Row. Door's blue.</div>
+    <div class="cipher"><div class="lab">What the server stores</div>YcAG1s5eBa6TK5HDZzkKlWeM5IAsj4C3Klbn Unrtep6INqzxfKsHYw 8paLg1s9GTO7hSGb8gk9OJNWxolNDKJuVRUP 2L6afLYfIxwLl+1fPTNwuMdYJuG9zLZQPw</div>
+  </div>
+</div></section>
+
+<div class="wrap final">
+  <span class="logo-ic" aria-hidden="true"></span>
+  <h2>Come gather.</h2>
+  <a class="btn big go primary" href="connect.html?go=signup">Join Aduna</a>
+  <footer class="is19"><span>aduna. To gather.</span></footer>
 </div>
 
 <script src="config.js"></script>
-<script>
-(function () {
-  var bar = document.getElementById('bar');
-  document.getElementById('releases').href = ADUNA.releases;
-  document.getElementById('source').href = ADUNA.source;
-
-  var manual = null;      // what status.json says: {kind, text} or null
-  var unreachable = false; // the server did not answer /healthz twice in a row
-
-  function render() {
-    var m = manual;
-    if (!m && unreachable) m = { kind: 'warn', text: 'Aduna isn’t responding right now. It may be restarting.' };
-    if (!m) { bar.className = ''; bar.textContent = ''; return; }
-    bar.className = 'show ' + m.kind;
-    bar.textContent = m.text;
-  }
-
-  // status.json is edited by hand: { "down": true, "message": "Restarting for an update." }
-  function loadStatus() {
-    return fetch('status.json?t=' + Date.now(), { cache: 'no-store' })
-      .then(function (r) { return r.json(); })
-      .then(function (s) {
-        if (s.down) manual = { kind: 'down', text: s.message || 'Aduna is down. Back soon.' };
-        else if (s.message) manual = { kind: 'warn', text: s.message };
-        else manual = null;
-      })
-      .catch(function () { /* keep whatever we had */ });
-  }
-
-  function ping() {
-    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
-    var stop = ctl ? setTimeout(function () { ctl.abort(); }, 5000) : null;
-    return fetch(ADUNA.health + '?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
-      .then(function (r) { return r.ok ? r.text() : ''; })
-      .then(function (t) { return t.trim() === 'ok'; })
-      .catch(function () { return false; })
-      .then(function (up) { if (stop) clearTimeout(stop); return up; });
-  }
-
-  var misses = 0;
-  function check() {
-    loadStatus().then(function () {
-      return ping();
-    }).then(function (up) {
-      if (up || navigator.onLine === false) { misses = 0; unreachable = false; render(); return; }
-      misses += 1;
-      // one miss can be a blip; two in a row is worth telling people about
-      if (misses >= 2) { unreachable = true; render(); return; }
-      render();
-      setTimeout(check, 5000);
-    });
-  }
-
-  check();
-  setInterval(check, 30000);
-})();
-</script>
+<script src="home-assets/theme.js"></script>
+<script src="home-assets/landing.js"></script>
+<script src="home-assets/status-bar.js"></script>
 </body>
 </html>
