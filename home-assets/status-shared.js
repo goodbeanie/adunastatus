@@ -32,7 +32,7 @@
 
   // Resolves to { down, text } or null. Rejects only if neither source could be read.
   function load() {
-    return getJson('/status-notice')
+    return getJson((window.ADUNA && ADUNA.notice) || '/status-notice')
       .catch(function () { return getJson('status.json'); })
       .then(describe);
   }

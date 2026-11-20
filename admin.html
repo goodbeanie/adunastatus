@@ -80,6 +80,7 @@
   <div id="out" role="status" aria-live="polite"></div>
 </main>
 
+<script src="config.js"></script>
 <script src="home-assets/status-shared.js"></script>
 <script>
 (function () {
@@ -148,7 +149,7 @@
 
   function call(method, body) {
     try { sessionStorage.setItem('adunaAdmin', pw.value); } catch (e) {}
-    return fetch('/status-notice', {
+    return fetch(ADUNA.notice, {
       method: method,
       headers: { 'Authorization': 'Bearer ' + pw.value, 'Content-Type': 'application/json' },
       body: body ? JSON.stringify(body) : undefined
