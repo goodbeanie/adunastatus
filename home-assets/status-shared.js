@@ -1,5 +1,6 @@
 // Shared by the homepage bar, the connect page and the admin preview.
-// Reads the live notice from /status-notice (set in /admin.html). If that is not reachable, falls back to status.json.
+// Reads the live notice from the Aduna server (set in /admin > Status). If the server is off or does not answer, falls back to status.json,
+// the copy the server saves on this site whenever a notice is posted or cleared.
 // A notice looks like { down, message, backAt (ISO time or null) }.
 (function () {
   function when(iso) {
@@ -25,9 +26,12 @@
     return { down: !!s.down, text: text };
   }
 
+  // a server that is off can leave a request hanging, so give up after a few seconds and use the saved copy (status.json) instead
   function getJson(url) {
-    return fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 't=' + Date.now(), { cache: 'no-store' })
-      .then(function (r) { if (!r.ok) throw new Error('status ' + r.status); return r.json(); });
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    var stop = ctl ? setTimeout(function () { ctl.abort(); }, 4000) : null;
+    return fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 't=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { if (stop) clearTimeout(stop); if (!r.ok) throw new Error('status ' + r.status); return r.json(); }, function (e) { if (stop) clearTimeout(stop); throw e; });
   }
 
   // Resolves to { down, text } or null. Rejects only if neither source could be read.
