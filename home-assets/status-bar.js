@@ -1,30 +1,28 @@
 // The bar across the top of the homepage.
-// 1. status.json is edited by hand: { "down": true, "message": "Restarting for an update." }
-//    down:true gives a red bar, a message alone gives a yellow one, an empty message hides it.
-// 2. If nobody has written a notice but the server stops answering /healthz twice in a row, a yellow bar says so.
+// 1. A notice posted from /admin.html (stored at /api/status, with status.json as the fallback) shows as a bar:
+//    red when the server is down, yellow for a warning, and nothing when there is no notice.
+// 2. If nobody has posted a notice but the server stops answering /healthz twice in a row, the default
+//    "Server restart" bar appears by itself and goes away when the server answers again.
 (function () {
   var bar = document.getElementById('bar');
   if (!bar) return;
 
-  var manual = null;       // what status.json says: { kind, text } or null
+  var DEFAULT_TEXT = 'Server restart. Aduna will be back shortly.';
+
+  var manual = null;       // the posted notice: { kind, text } or null
   var unreachable = false; // the server did not answer /healthz twice in a row
 
   function render() {
     var m = manual;
-    if (!m && unreachable) m = { kind: 'warn', text: 'Aduna isn’t responding right now. It may be restarting.' };
+    if (!m && unreachable) m = { kind: 'down', text: DEFAULT_TEXT };
     if (!m) { bar.className = ''; bar.textContent = ''; return; }
     bar.className = 'show ' + m.kind;
     bar.textContent = m.text;
   }
 
   function loadStatus() {
-    return fetch('status.json?t=' + Date.now(), { cache: 'no-store' })
-      .then(function (r) { return r.json(); })
-      .then(function (s) {
-        if (s.down) manual = { kind: 'down', text: s.message || 'Aduna is down. Back soon.' };
-        else if (s.message) manual = { kind: 'warn', text: s.message };
-        else manual = null;
-      })
+    return AdunaStatus.load()
+      .then(function (n) { manual = n ? { kind: n.down ? 'down' : 'warn', text: n.text } : null; })
       .catch(function () { /* keep whatever we had */ });
   }
 

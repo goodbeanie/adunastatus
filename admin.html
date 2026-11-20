@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Aduna status admin</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #14151a; color: #e8e9ee; font-family: system-ui, sans-serif; line-height: 1.5; }
+  main { max-width: 560px; margin: 0 auto; padding: 28px 18px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 26px 0 8px; color: #a9acb8; text-transform: uppercase; letter-spacing: .06em; }
+  p.sub { margin: 0 0 18px; color: #a9acb8; }
+  label { display: block; margin: 14px 0 6px; font-size: 15px; color: #cfd1da; }
+  input, textarea, select { width: 100%; padding: 10px 12px; font: inherit; color: inherit; background: #1d1f27; border: 1px solid #343747; border-radius: 8px; }
+  textarea { min-height: 84px; resize: vertical; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  button { font: inherit; cursor: pointer; padding: 9px 14px; border-radius: 8px; border: 1px solid #343747; background: #23263a; color: inherit; }
+  button:hover { background: #2b2f47; }
+  button.on { border-color: #8da2ff; background: #2c3358; }
+  button.go { background: #4458d8; border-color: #4458d8; font-weight: 600; }
+  button.go:hover { background: #5568e6; }
+  button.clear { border-color: #6a2c2c; }
+  button:disabled { opacity: .5; cursor: default; }
+  .chips button { padding: 5px 10px; font-size: 14px; }
+  .hint { font-size: 14px; color: #8e91a0; margin: 6px 0 0; }
+  #timeBox[hidden], #kindBox[hidden] { display: none; }
+  .bar { padding: 10px 14px; border-radius: 8px; text-align: center; font-size: 16px; }
+  .bar.warn { background: #f1d98a; color: #3b2f00; }
+  .bar.down { background: #b3261e; color: #fff; }
+  .bar.none { background: #1d1f27; color: #8e91a0; border: 1px dashed #343747; }
+  #out { margin-top: 14px; min-height: 1.4em; font-size: 15px; }
+  #out.err { color: #ff8a80; }
+  #out.ok { color: #8be39b; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Aduna status</h1>
+  <p class="sub">Post a notice for the homepage bar. It shows within 30 seconds on open pages.</p>
+
+  <label for="pw">Password</label>
+  <input id="pw" type="password" autocomplete="current-password" placeholder="ADMIN_TOKEN">
+
+  <h2>On the site now</h2>
+  <div id="current" class="bar none">Loading…</div>
+
+  <h2>Template</h2>
+  <div class="row" id="templates"></div>
+
+  <label for="msg">Message</label>
+  <textarea id="msg" maxlength="300"></textarea>
+
+  <div id="kindBox" hidden>
+    <label for="kind">Bar colour</label>
+    <select id="kind"><option value="down">Red (server is down)</option><option value="warn">Yellow (warning)</option></select>
+  </div>
+
+  <div id="timeBox" hidden>
+    <label for="back">Server back up <span id="timeReq"></span></label>
+    <input id="back" type="datetime-local">
+    <div class="row chips" style="margin-top:8px">
+      <button type="button" data-plus="15">+15 min</button>
+      <button type="button" data-plus="60">+1 hour</button>
+      <button type="button" data-plus="180">+3 hours</button>
+      <button type="button" data-plus="0">No time</button>
+    </div>
+    <p class="hint">In your time zone (<span id="tz"></span>). Visitors see it in theirs.</p>
+  </div>
+
+  <h2>Preview</h2>
+  <div id="preview" class="bar none">Nothing to show</div>
+
+  <div class="row" style="margin-top:20px">
+    <button id="post" class="go" type="button">Post notice</button>
+    <button id="clear" class="clear" type="button">Clear notice</button>
+  </div>
+  <div id="out" role="status" aria-live="polite"></div>
+</main>
+
+<script src="home-assets/status-shared.js"></script>
+<script>
+(function () {
+  // time: 'ask' = back-up time input is shown and required; 'optional' = shown but can be left empty; false = not shown
+  var T = {
+    restart:     { label: 'Server restart',     down: true,  time: 'optional', msg: 'Server restart. Aduna will be back shortly.' },
+    maintenance: { label: 'Server maintenance', down: true,  time: 'ask',      msg: 'Server maintenance in progress.' },
+    crash:       { label: 'Server crash',       down: true,  time: 'optional', msg: 'The server crashed. We’re working on it.' },
+    slow:        { label: 'Slow / degraded',    down: false, time: false,      msg: 'Aduna is running slowly right now. We’re looking into it.' },
+    custom:      { label: 'Custom',             down: false, time: 'optional', msg: '' }
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var pw = $('pw'), msg = $('msg'), kind = $('kind'), back = $('back'), out = $('out');
+  var current = 'restart';
+
+  $('tz').textContent = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'your time zone';
+  try { pw.value = sessionStorage.getItem('adunaAdmin') || ''; } catch (e) {}
+
+  // template buttons
+  Object.keys(T).forEach(function (k) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.dataset.t = k; b.textContent = T[k].label;
+    b.addEventListener('click', function () { pick(k); });
+    $('templates').appendChild(b);
+  });
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function localValue(d) {
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
+  function pick(k) {
+    current = k;
+    var t = T[k];
+    [].forEach.call($('templates').children, function (b) { b.classList.toggle('on', b.dataset.t === k); });
+    msg.value = t.msg;
+    kind.value = t.down ? 'down' : 'warn';
+    $('kindBox').hidden = k !== 'custom';
+    $('timeBox').hidden = !t.time;
+    $('timeReq').textContent = t.time === 'ask' ? '(needed)' : '(optional)';
+    back.value = '';
+    preview();
+  }
+
+  function isDown() { return current === 'custom' ? kind.value === 'down' : T[current].down; }
+  function backIso() { return back.value ? new Date(back.value).toISOString() : null; }
+
+  function show(el, n) {
+    if (!n) { el.className = 'bar none'; el.textContent = 'Nothing to show'; return; }
+    el.className = 'bar ' + (n.down ? 'down' : 'warn');
+    el.textContent = n.text;
+  }
+
+  function preview() {
+    var text = msg.value.trim();
+    show($('preview'), text ? AdunaStatus.describe({ down: isDown(), message: text, backAt: T[current].time ? backIso() : null }) : null);
+  }
+
+  function loadCurrent() {
+    AdunaStatus.load().then(function (n) { show($('current'), n); if (!n) $('current').textContent = 'No notice. The bar is hidden.'; })
+      .catch(function () { $('current').className = 'bar none'; $('current').textContent = 'Could not read the current notice.'; });
+  }
+
+  function say(text, cls) { out.textContent = text; out.className = cls || ''; }
+
+  function call(method, body) {
+    try { sessionStorage.setItem('adunaAdmin', pw.value); } catch (e) {}
+    return fetch('/api/status', {
+      method: method,
+      headers: { 'Authorization': 'Bearer ' + pw.value, 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (!r.ok) throw new Error(j.error || ('Failed (' + r.status + ')'));
+        return j;
+      });
+    });
+  }
+
+  $('post').addEventListener('click', function () {
+    var text = msg.value.trim();
+    if (!pw.value) return say('Enter the password.', 'err');
+    if (!text) return say('Write a message first.', 'err');
+    if (T[current].time === 'ask' && !back.value) return say('Pick when the server will be back up.', 'err');
+    say('Posting…');
+    call('POST', { down: isDown(), message: text, backAt: T[current].time ? backIso() : null, template: current })
+      .then(function () { say('Posted.', 'ok'); loadCurrent(); })
+      .catch(function (e) { say(e.message, 'err'); });
+  });
+
+  $('clear').addEventListener('click', function () {
+    if (!pw.value) return say('Enter the password.', 'err');
+    say('Clearing…');
+    call('DELETE')
+      .then(function () { say('Cleared. The bar is hidden.', 'ok'); loadCurrent(); })
+      .catch(function (e) { say(e.message, 'err'); });
+  });
+
+  [].forEach.call(document.querySelectorAll('[data-plus]'), function (b) {
+    b.addEventListener('click', function () {
+      var m = +b.dataset.plus;
+      back.value = m ? localValue(new Date(Date.now() + m * 60000)) : '';
+      preview();
+    });
+  });
+
+  msg.addEventListener('input', preview);
+  kind.addEventListener('change', preview);
+  back.addEventListener('input', preview);
+
+  pick('restart');
+  loadCurrent();
+})();
+</script>
+</body>
+</html>

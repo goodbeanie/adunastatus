@@ -17,12 +17,12 @@
   <h1 id="title">Aduna</h1>
   <p id="msg">Checking the server...</p>
 </main>
+<script src="home-assets/status-shared.js"></script>
 <script>
-fetch('status.json', { cache: 'no-store' })
-  .then((r) => r.json())
-  .then((s) => {
-    document.getElementById('title').textContent = s.down ? 'Aduna is down' : 'Aduna';
-    document.getElementById('msg').textContent = s.message || (s.down ? 'Back soon.' : 'No known problems.');
+AdunaStatus.load()
+  .then((n) => {
+    document.getElementById('title').textContent = n && n.down ? 'Aduna is down' : 'Aduna';
+    document.getElementById('msg').textContent = n ? n.text : 'No known problems.';
   })
   .catch(() => { document.getElementById('msg').textContent = 'Could not load the status.'; });
 </script>

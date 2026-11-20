@@ -33,6 +33,7 @@
 
 <script src="config.js"></script>
 <script src="home-assets/theme.js"></script>
+<script src="home-assets/status-shared.js"></script>
 <script>
 (function () {
   var RETRY = (ADUNA.retrySeconds || 5) * 1000;
@@ -62,18 +63,17 @@
       .then(function (up) { if (stop) clearTimeout(stop); return up; });
   }
 
-  // the hand-edited note from status.json, if there is one
+  // the notice posted from /admin.html, if there is one (includes the back-up time when one was given)
   function loadNotice() {
-    return fetch('status.json?t=' + Date.now(), { cache: 'no-store' })
-      .then(function (r) { return r.json(); })
-      .then(function (s) { notice = (s.down || s.message) ? { down: !!s.down, text: s.message || '' } : null; })
+    return AdunaStatus.load()
+      .then(function (n) { notice = n; })
       .catch(function () {});
   }
 
   function showBar() {
     if (!notice) { bar.className = ''; bar.textContent = ''; return; }
     bar.className = 'show ' + (notice.down ? 'down' : 'warn');
-    bar.textContent = notice.text || (notice.down ? 'Aduna is down. Back soon.' : '');
+    bar.textContent = notice.text;
   }
 
   function explain() {
@@ -83,12 +83,9 @@
     } else if (notice && notice.text) {
       title.textContent = 'Waiting for Aduna';
       what.textContent = notice.text;
-    } else if (notice && notice.down) {
-      title.textContent = 'Aduna is down';
-      what.textContent = 'The server is down for now. This page will keep trying and open Aduna when it’s back.';
     } else {
-      title.textContent = 'Waiting for Aduna';
-      what.textContent = 'The server isn’t answering yet. It may be restarting or waking up. This page keeps trying and opens Aduna on its own.';
+      title.textContent = 'Server restart';
+      what.textContent = 'The server isn’t answering yet. It’s probably restarting. This page keeps trying and opens Aduna on its own.';
     }
   }
 
