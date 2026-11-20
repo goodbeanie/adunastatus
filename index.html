@@ -3,28 +3,82 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aduna status</title>
-<style>
-  :root { color-scheme: dark; }
-  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #14151a; color: #e8e9ee; font-family: system-ui, sans-serif; text-align: center; }
-  main { padding: 24px; max-width: 420px; }
-  h1 { font-size: 28px; margin: 0 0 12px; }
-  p { margin: 0; color: #a9acb8; line-height: 1.5; }
-</style>
+<title>Aduna</title>
+<meta name="description" content="Aduna is a chat app with servers, channels, DMs, voice and video calls, and bots.">
+<link rel="stylesheet" href="site.css">
 </head>
 <body>
-<main>
-  <h1 id="title">Aduna</h1>
-  <p id="msg">Checking the server...</p>
-</main>
+<div id="bar" role="status" aria-live="polite"></div>
+
+<div class="wrap">
+  <main>
+    <p class="brand">Aduna</p>
+    <h1>Chat with your people.</h1>
+    <p>Servers with channels, direct messages, voice and video calls, profiles and bots. DMs and group chats are end-to-end encrypted.</p>
+    <a class="btn" id="open" href="connect.html">Open Aduna</a>
+    <div class="links">
+      <a id="releases" href="#">Windows &amp; Android</a>·<a id="source" href="#">Source code</a>
+    </div>
+  </main>
+</div>
+
+<script src="config.js"></script>
 <script>
-fetch('status.json', { cache: 'no-store' })
-  .then((r) => r.json())
-  .then((s) => {
-    document.getElementById('title').textContent = s.down ? 'Aduna is down' : 'Aduna';
-    document.getElementById('msg').textContent = s.message || (s.down ? 'Back soon.' : 'No known problems.');
-  })
-  .catch(() => { document.getElementById('msg').textContent = 'Could not load the status.'; });
+(function () {
+  var bar = document.getElementById('bar');
+  document.getElementById('releases').href = ADUNA.releases;
+  document.getElementById('source').href = ADUNA.source;
+
+  var manual = null;      // what status.json says: {kind, text} or null
+  var unreachable = false; // the server did not answer /healthz twice in a row
+
+  function render() {
+    var m = manual;
+    if (!m && unreachable) m = { kind: 'warn', text: 'Aduna isn’t responding right now. It may be restarting.' };
+    if (!m) { bar.className = ''; bar.textContent = ''; return; }
+    bar.className = 'show ' + m.kind;
+    bar.textContent = m.text;
+  }
+
+  // status.json is edited by hand: { "down": true, "message": "Restarting for an update." }
+  function loadStatus() {
+    return fetch('status.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (s) {
+        if (s.down) manual = { kind: 'down', text: s.message || 'Aduna is down. Back soon.' };
+        else if (s.message) manual = { kind: 'warn', text: s.message };
+        else manual = null;
+      })
+      .catch(function () { /* keep whatever we had */ });
+  }
+
+  function ping() {
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    var stop = ctl ? setTimeout(function () { ctl.abort(); }, 5000) : null;
+    return fetch(ADUNA.health + '?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (t) { return t.trim() === 'ok'; })
+      .catch(function () { return false; })
+      .then(function (up) { if (stop) clearTimeout(stop); return up; });
+  }
+
+  var misses = 0;
+  function check() {
+    loadStatus().then(function () {
+      return ping();
+    }).then(function (up) {
+      if (up || navigator.onLine === false) { misses = 0; unreachable = false; render(); return; }
+      misses += 1;
+      // one miss can be a blip; two in a row is worth telling people about
+      if (misses >= 2) { unreachable = true; render(); return; }
+      render();
+      setTimeout(check, 5000);
+    });
+  }
+
+  check();
+  setInterval(check, 30000);
+})();
 </script>
 </body>
 </html>

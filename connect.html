@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connecting to Aduna</title>
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div id="bar" role="status" aria-live="polite"></div>
+
+<div class="wrap">
+  <main>
+    <p class="brand">Aduna</p>
+    <div class="spin" role="progressbar" aria-label="Connecting to the server"></div>
+    <h1 id="title">Connecting to Aduna</h1>
+    <p id="what" aria-live="polite">Checking the server…</p>
+    <p id="meta"></p>
+    <div class="row">
+      <button class="btn ghost" id="now" type="button">Try now</button>
+      <a class="btn ghost" href="index.html">Back</a>
+    </div>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  var RETRY = (ADUNA.retrySeconds || 5) * 1000;
+  var TIMEOUT = 4000; // give up on a single attempt before the next one is due
+
+  var bar = document.getElementById('bar');
+  var title = document.getElementById('title');
+  var what = document.getElementById('what');
+  var meta = document.getElementById('meta');
+  var now = document.getElementById('now');
+
+  var attempts = 0, busy = false, nextAt = 0, startedAt = Date.now(), notice = null, done = false;
+  var tickTimer = null, nextTimer = null;
+
+  function ping() {
+    var ctl = typeof AbortController === 'function' ? new AbortController() : null;
+    var stop = ctl ? setTimeout(function () { ctl.abort(); }, TIMEOUT) : null;
+    return fetch(ADUNA.health + '?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { return r.ok ? r.text() : ''; })
+      .then(function (t) { return t.trim() === 'ok'; })
+      .catch(function () { return false; })
+      .then(function (up) { if (stop) clearTimeout(stop); return up; });
+  }
+
+  // the hand-edited note from status.json, if there is one
+  function loadNotice() {
+    return fetch('status.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (s) { notice = (s.down || s.message) ? { down: !!s.down, text: s.message || '' } : null; })
+      .catch(function () {});
+  }
+
+  function showBar() {
+    if (!notice) { bar.className = ''; bar.textContent = ''; return; }
+    bar.className = 'show ' + (notice.down ? 'down' : 'warn');
+    bar.textContent = notice.text || (notice.down ? 'Aduna is down. Back soon.' : '');
+  }
+
+  function explain() {
+    if (navigator.onLine === false) {
+      title.textContent = 'You’re offline';
+      what.textContent = 'Check your internet connection. Aduna will open as soon as you’re back online.';
+    } else if (notice && notice.text) {
+      title.textContent = 'Waiting for Aduna';
+      what.textContent = notice.text;
+    } else if (notice && notice.down) {
+      title.textContent = 'Aduna is down';
+      what.textContent = 'The server is down for now. This page will keep trying and open Aduna when it’s back.';
+    } else {
+      title.textContent = 'Waiting for Aduna';
+      what.textContent = 'The server isn’t answering yet. It may be restarting or waking up. This page keeps trying and opens Aduna on its own.';
+    }
+  }
+
+  function tick() {
+    if (done) return;
+    var bits = [];
+    if (attempts > 0) bits.push('Attempt ' + attempts);
+    bits.push(Math.max(0, Math.round((Date.now() - startedAt) / 1000)) + 's elapsed');
+    if (!busy && nextAt) {
+      var left = Math.max(0, Math.ceil((nextAt - Date.now()) / 1000));
+      bits.push('trying again in ' + left + 's');
+    }
+    meta.textContent = bits.join(' · ');
+  }
+
+  function check() {
+    if (busy || done) return;
+    busy = true;
+    now.disabled = true;
+    clearTimeout(nextTimer);
+    var began = Date.now();
+    what.textContent = attempts === 0 ? 'Checking the server…' : what.textContent;
+    tick();
+
+    Promise.all([ping(), loadNotice()]).then(function (res) {
+      var up = res[0];
+      attempts += 1;
+      busy = false;
+      now.disabled = false;
+      showBar();
+      if (up) {
+        done = true;
+        clearInterval(tickTimer);
+        title.textContent = 'Connected';
+        what.textContent = 'Opening Aduna…';
+        meta.textContent = '';
+        location.replace(ADUNA.app);
+        return;
+      }
+      explain();
+      // a fixed beat: the next attempt starts RETRY after this one started
+      nextAt = began + RETRY;
+      nextTimer = setTimeout(check, Math.max(0, nextAt - Date.now()));
+      tick();
+    });
+  }
+
+  now.addEventListener('click', check);
+  window.addEventListener('online', check);
+  tickTimer = setInterval(tick, 1000);
+  check();
+})();
+</script>
+</body>
+</html>
